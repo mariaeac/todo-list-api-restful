@@ -8,19 +8,18 @@ import com.meac.todolist_api.entities.dto.UserLoginResponseDTO;
 import com.meac.todolist_api.entities.dto.UserRegisterDTO;
 import com.meac.todolist_api.repositories.RoleRepository;
 import com.meac.todolist_api.repositories.UserRepository;
-import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -49,7 +48,7 @@ public class UserServices {
 
         Optional<User> user = userRepository.findByEmail(userRegisterDTO.email());
         if (user.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
+            throw new BadCredentialsException( "Email already exists");
         }
 
         var userRole = roleRepository.findByName(Role.Values.USER.name());
@@ -65,13 +64,11 @@ public class UserServices {
     @Transactional(readOnly = true)
     public UserLoginResponseDTO login(UserLoginRequestDTO userLogin) {
 
-        User user = userRepository.findByEmail(userLogin.email()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User user = userRepository.findByEmail(userLogin.email()).orElseThrow(() -> new BadCredentialsException("User not found"));
 
         if (!validateCredentials(userLogin, user)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            throw new BadCredentialsException("Invalid username or password");
         }
-
-
         Instant now = Instant.now();
 
         var claims = JwtClaimsSet.builder().issuer("todolist-backend")
