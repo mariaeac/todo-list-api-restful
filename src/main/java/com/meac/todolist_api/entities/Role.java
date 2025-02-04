@@ -18,4 +18,19 @@ public class Role {
     public String getName() {
         return name;
     }
+
+    public enum Values {
+        USER(2L),
+        ADMIN(1L);
+
+        long roleId;
+
+        Values(long roleId) {
+            this.roleId = roleId;
+        }
+
+        public long getRoleId() {
+            return roleId;
+        }
+    }
 }
