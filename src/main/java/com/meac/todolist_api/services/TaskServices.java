@@ -5,18 +5,17 @@ import com.meac.todolist_api.entities.User;
 import com.meac.todolist_api.entities.dto.NewTaskRequestDTO;
 import com.meac.todolist_api.entities.dto.NewTaskResponseDTO;
 import com.meac.todolist_api.enums.Status;
-import com.meac.todolist_api.exceptions.ExceptionHandlerGlobal;
 import com.meac.todolist_api.repositories.TaskRepository;
 import com.meac.todolist_api.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 
@@ -64,6 +63,15 @@ public class TaskServices {
         Task updatedTask = taskRepository.save(task);
 
         return new NewTaskResponseDTO(updatedTask.getId(), updatedTask.getTitle(), updatedTask.getDescription());
+    }
+
+    public void deleteTaskById(long taskId, JwtAuthenticationToken jwtToken) {
+        UUID userId = UUID.fromString(jwtToken.getName());
+        Task task = taskRepository.findById(taskId).orElseThrow(() ->  new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!task.getUser().getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        taskRepository.delete(task);
     }
 
 

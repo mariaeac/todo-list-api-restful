@@ -17,6 +17,9 @@ public class TaskController {
         this.taskServices = taskServices;
     }
 
+    
+
+
     @PostMapping
     public ResponseEntity<NewTaskResponseDTO> createTask(@RequestBody NewTaskRequestDTO newTaskRequestDTO, JwtAuthenticationToken jwtToken) {
         NewTaskResponseDTO response =  taskServices.createNewTask(newTaskRequestDTO, jwtToken);
@@ -28,6 +31,13 @@ public class TaskController {
         NewTaskResponseDTO response = taskServices.updateTask(newTaskRequestDTO, jwtToken, taskId);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{task_id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable(value = "task_id") Long taskId, JwtAuthenticationToken jwtToken) {
+        taskServices.deleteTaskById(taskId, jwtToken);
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 }
