@@ -2,6 +2,9 @@ package com.meac.todolist_api.entities;
 
 import com.meac.todolist_api.enums.Status;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "tb_task")
@@ -18,16 +21,20 @@ public class Task {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @CreationTimestamp
+    private Instant creationTimeStamp;
+
     public Task() {
 
     }
 
-    public Task(Long id, String title, String description, Status status, User user) {
+    public Task(Long id, String title, String description, Status status, User user, Instant creationTimeStamp) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.status = status;
         this.user = user;
+        this.creationTimeStamp = creationTimeStamp;
     }
 
     public Long getId() {

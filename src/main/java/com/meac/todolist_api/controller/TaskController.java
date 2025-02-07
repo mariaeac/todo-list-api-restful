@@ -2,7 +2,10 @@ package com.meac.todolist_api.controller;
 
 import com.meac.todolist_api.entities.dto.NewTaskRequestDTO;
 import com.meac.todolist_api.entities.dto.NewTaskResponseDTO;
+import com.meac.todolist_api.entities.dto.TaskDTO;
+import com.meac.todolist_api.entities.dto.TasksDTO;
 import com.meac.todolist_api.services.TaskServices;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +20,14 @@ public class TaskController {
         this.taskServices = taskServices;
     }
 
-    
+    @GetMapping
+    public ResponseEntity<TasksDTO> getTasks(  @RequestParam(value = "page", defaultValue = "0") int page,
+                                               @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
+        ) {
+            Page<TaskDTO> paginatedTasks = taskServices.getAllTasks(page, pageSize);
+            return ResponseEntity.ok(TasksDTO.fromPage(paginatedTasks));
+
+        }
 
 
     @PostMapping

@@ -4,17 +4,25 @@ import com.meac.todolist_api.entities.Task;
 import com.meac.todolist_api.entities.User;
 import com.meac.todolist_api.entities.dto.NewTaskRequestDTO;
 import com.meac.todolist_api.entities.dto.NewTaskResponseDTO;
+import com.meac.todolist_api.entities.dto.TaskDTO;
+import com.meac.todolist_api.entities.dto.TasksDTO;
 import com.meac.todolist_api.enums.Status;
 import com.meac.todolist_api.repositories.TaskRepository;
 import com.meac.todolist_api.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,7 +57,7 @@ public class TaskServices {
     public NewTaskResponseDTO updateTask(NewTaskRequestDTO newTaskDTO, JwtAuthenticationToken jwtToken, long taskId) {
 
         UUID userId = UUID.fromString(jwtToken.getName());
-        Optional <User> user = userRepository.findById(userId);
+       // Optional <User> user = userRepository.findById(userId);
 
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Task not found"));
 
@@ -74,6 +82,14 @@ public class TaskServices {
         taskRepository.delete(task);
     }
 
+    public Page<TaskDTO> getAllTasks(int page, int pageSize) {
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "creationTimeStamp");
+
+        return taskRepository.findAll(pageable).map(task -> new TaskDTO(task.getId(), task.getTitle(), task.getDescription(), task.getStatus()));
+
+
+    }
 
 
 
