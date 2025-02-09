@@ -21,10 +21,11 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<TasksDTO> getTasks(  @RequestParam(value = "page", defaultValue = "0") int page,
-                                               @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
+    public ResponseEntity<TasksDTO> getTasks( @RequestParam(value = "page", defaultValue = "0") int page,
+                                              @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                              JwtAuthenticationToken jwtAuthenticationToken
         ) {
-            Page<TaskDTO> paginatedTasks = taskServices.getAllTasks(page, pageSize);
+            Page<TaskDTO> paginatedTasks = taskServices.getAllTasks(page, pageSize, jwtAuthenticationToken);
             return ResponseEntity.ok(TasksDTO.fromPage(paginatedTasks));
 
         }

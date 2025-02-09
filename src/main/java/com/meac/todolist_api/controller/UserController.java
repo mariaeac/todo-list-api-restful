@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api")
@@ -24,13 +27,10 @@ public class UserController {
     }
 
     @PostMapping(value = "/register")
-    public ResponseEntity<Void> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
-       try {
-           userServices.createUser(userRegisterDTO);
-           return ResponseEntity.ok().build();
-       } catch (Exception e) {
-           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-       }
+    public ResponseEntity<UserLoginResponseDTO> registerUser(@RequestBody UserRegisterDTO userRegisterDTO) {
+        UserLoginResponseDTO response = userServices.createUser(userRegisterDTO);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.userId()).toUri();
+        return ResponseEntity.created(location).body(response);
     }
 
     @PostMapping(value = "/login")

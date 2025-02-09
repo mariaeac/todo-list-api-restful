@@ -82,7 +82,10 @@ public class TaskServices {
         taskRepository.delete(task);
     }
 
-    public Page<TaskDTO> getAllTasks(int page, int pageSize) {
+    public Page<TaskDTO> getAllTasks(int page, int pageSize, JwtAuthenticationToken jwtToken) {
+
+        String userId = jwtToken.getName();
+        User user = userRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new BadCredentialsException("User not found"));
 
         Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "creationTimeStamp");
 

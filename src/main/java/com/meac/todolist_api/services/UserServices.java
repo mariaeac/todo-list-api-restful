@@ -6,6 +6,7 @@ import com.meac.todolist_api.entities.dto.UserLoginRequestDTO;
 import com.meac.todolist_api.entities.dto.UserLoginResponseDTO;
 
 import com.meac.todolist_api.entities.dto.UserRegisterDTO;
+import com.meac.todolist_api.exceptions.CustomizedExceptions;
 import com.meac.todolist_api.repositories.RoleRepository;
 import com.meac.todolist_api.repositories.UserRepository;
 
@@ -44,12 +45,12 @@ public class UserServices {
     }
 
     @Transactional
-    public void createUser(UserRegisterDTO userRegisterDTO) {
+    public UserLoginResponseDTO createUser(UserRegisterDTO userRegisterDTO) {
 
         Optional<User> user = userRepository.findByEmail(userRegisterDTO.email());
-        if (user.isPresent()) {
-            throw new BadCredentialsException( "Email already exists");
-        }
+       if (user.isPresent()) {
+           throw new CustomizedExceptions.EmailAlreadyExistsException("Email is already in use");
+       }
 
         var userRole = roleRepository.findByName(Role.Values.USER.name());
 
@@ -59,16 +60,34 @@ public class UserServices {
        newUser.setPassword(bCryptPasswordEncoder.encode(userRegisterDTO.password()));
        newUser.setRoles(Set.of(userRole));
        userRepository.save(newUser);
+
+       String jwtToken = generateJwtToken(newUser);
+        return new UserLoginResponseDTO(newUser.getUserId(), jwtToken, "Bearer ", tokenExpireTime);
+
     }
 
     @Transactional(readOnly = true)
     public UserLoginResponseDTO login(UserLoginRequestDTO userLogin) {
 
-        User user = userRepository.findByEmail(userLogin.email()).orElseThrow(() -> new BadCredentialsException("User not found"));
-
+        User user  = findUserByEmail(userLogin.email());
         if (!validateCredentials(userLogin, user)) {
-            throw new BadCredentialsException("Invalid username or password");
+            throw new CustomizedExceptions.BadRequestException("Invalid username or password");
         }
+
+        String jwtToken = generateJwtToken(user);
+        return new UserLoginResponseDTO(user.getUserId(), jwtToken, "Bearer ", tokenExpireTime);
+
+    }
+
+    private Boolean validateCredentials(UserLoginRequestDTO userLogin,  User user) {
+        return bCryptPasswordEncoder.matches(userLogin.password(), user.getPassword());
+    }
+
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new CustomizedExceptions.BadRequestException("Invalid credentials"));
+    }
+
+    private String generateJwtToken(User user) {
         Instant now = Instant.now();
 
         var claims = JwtClaimsSet.builder().issuer("todolist-backend")
@@ -78,13 +97,13 @@ public class UserServices {
                 .claim("roles", user.getRoles())
                 .build();
 
-        var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        return new UserLoginResponseDTO(jwtValue);
-
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    public Boolean validateCredentials(UserLoginRequestDTO userLogin,  User user) {
-        return bCryptPasswordEncoder.matches(userLogin.password(), user.getPassword());
-    }
+
+
+
+
+
 
 }

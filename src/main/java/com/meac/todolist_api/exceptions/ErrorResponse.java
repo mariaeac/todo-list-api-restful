@@ -4,8 +4,12 @@ import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
-public record ErrorResponse(HttpStatus errorCode, String errorMessage, List<String> errorDetails) {
-    public ErrorResponse(HttpStatus errorCode, String errorMessage) {
-        this(errorCode, errorMessage, null);
+public record ErrorResponse(
+        String message,
+        int status,
+        List<String> details
+) {
+    public ErrorResponse(String message, int status) {
+        this(message, status, null);
     }
 }

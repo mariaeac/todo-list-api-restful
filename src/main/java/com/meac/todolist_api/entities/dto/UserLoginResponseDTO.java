@@ -1,4 +1,6 @@
 package com.meac.todolist_api.entities.dto;
 
-public record UserLoginResponseDTO (String token){
+import java.util.UUID;
+
+public record UserLoginResponseDTO (UUID userId, String token, String tokenType, long tokenExpiration) {
 }
